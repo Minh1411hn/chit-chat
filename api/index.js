@@ -122,7 +122,7 @@ app.post('/api/register', async (req, res) => {
 
 });
 
-const server = app.listen(2000);
+const server = app.listen(4040);
 const wss = new ws.WebSocketServer({server});
 wss.on('connection', (connection, req) => {
 
