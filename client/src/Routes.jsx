@@ -1,15 +1,16 @@
-import Register from "./Register.jsx";
+import RegisterAndLoginForm from "./RegisterAndLoginForm.jsx";
 import {useContext} from "react";
 import {UserContext} from "./UserContext.jsx";
+import Chat from "./Chat"
 
 export default function Routes() {
     const {username, id} = useContext(UserContext);
 
     if (username){
-        return 'Loggin Success!';
+        return <Chat/>;
     }
 
     return (
-        <Register/>
+        <RegisterAndLoginForm/>
     );
 }
