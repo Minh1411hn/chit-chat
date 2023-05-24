@@ -20,7 +20,7 @@ export default function Chat() {
         connectToWs();
     }, [selectedUserId]);
     function connectToWs() {
-        const ws = new WebSocket('wss://dolphin-app-3kdvb.ondigitalocean.app:4040');
+        const ws = new WebSocket('wss://chat.minhtran.live:4040');
         setWs(ws);
         ws.addEventListener('message', handleMessage);
         ws.addEventListener('close', () => {
