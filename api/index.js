@@ -29,7 +29,7 @@ app.use(cookieParser());
 app.use(express.json());
 app.use(cors({
     credentials: true,
-    origin: ['https://chat.minhtran.live:4040'],
+    origin: [`${process.env.CLIENT_URL}`],
 }));
 app.set("trust proxy", 1);
 
