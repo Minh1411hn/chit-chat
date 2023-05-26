@@ -20,7 +20,7 @@ export default function Chat() {
         connectToWs();
     }, [selectedUserId]);
     function connectToWs() {
-        const ws = new WebSocket('ws://chat.minhtran.live:4040/api');
+        const ws = new WebSocket('ws://chat.minhtran.live');
         setWs(ws);
         ws.addEventListener('message', handleMessage);
         ws.addEventListener('close', () => {
@@ -41,7 +41,7 @@ export default function Chat() {
 
 
     function logout() {
-        axios.post('/api/logout',).then(()=> {
+        axios.post('/logout',).then(()=> {
             setWs(null);
             setId(null);
             setUsername(null);
@@ -72,7 +72,7 @@ export default function Chat() {
     }, [messages]);
 
     useEffect(()=> {
-        axios.get('/api/people').then(rest=>{
+        axios.get('/people').then(rest=>{
             const offlinePeopleArr = rest.data
                 .filter(p => p._id !== id)
                 .filter(p => !Object.keys(onlinePeople).includes(p._id));
@@ -86,7 +86,7 @@ export default function Chat() {
 
     useEffect(()=> {
         if (selectedUserId) {
-            axios.get('/api/messages/'+selectedUserId).then(res => {
+            axios.get('/messages/'+selectedUserId).then(res => {
                 setMessages(res.data);
             });
         }
