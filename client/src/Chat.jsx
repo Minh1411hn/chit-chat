@@ -26,6 +26,7 @@ export default function Chat() {
         ws.addEventListener('close', () => {
             setTimeout(() => {
                 console.log('Disconnected. Trying to reconnect.');
+                console.log(import.meta.env.VITE_API_BASE_URL);
                 connectToWs();
             }, 1000);
         });
