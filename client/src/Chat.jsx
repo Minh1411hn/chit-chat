@@ -5,6 +5,7 @@ import {uniqBy} from "lodash";
 import axios from "axios";
 import Contact from "./Contact.jsx";
 import Gravatar from 'react-gravatar';
+import dotenv from 'dotenv';
 
 export default function Chat() {
     const [ws,setWs] = useState(null);
@@ -21,7 +22,7 @@ export default function Chat() {
         connectToWs();
     }, [selectedUserId]);
     function connectToWs() {
-        const ws = new WebSocket('ws://localhost:4040/ws');
+        const ws = new WebSocket('ws://localhost:4040/api/ws');
         setWs(ws);
         ws.addEventListener('message', handleMessage);
         ws.addEventListener('close', () => {
