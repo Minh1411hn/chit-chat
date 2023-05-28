@@ -5,24 +5,27 @@ import {uniqBy} from "lodash";
 import axios from "axios";
 import Contact from "./Contact.jsx";
 import Gravatar from 'react-gravatar';
-import dotenv from 'dotenv';
 
 export default function Chat() {
     const [ws,setWs] = useState(null);
     const [onlinePeople, setOnlinePeople] = useState({});
     const [offlinePeople, setOfflinePeople] = useState({});
     const [selectedUserId, setSelectedUserId] = useState(null);
+    const [selectedUsername, setSelectedUsername] = useState(null);
+    const [selectedEmail, setSelectedEmail] = useState(null);
     const [newMessageText, setNewMessageText] = useState('');
     const {email,id,setId,setEmail,username,setUsername } = useContext(UserContext);
     const [messages, setMessages] = useState([]);
     const divUnderMessages = useRef();
-
+    const wsUrl = import.meta.env.VITE_WS_URL;
+    console.log(`websocket url is ${wsUrl}`);
 
     useEffect(() => {
         connectToWs();
     }, [selectedUserId]);
     function connectToWs() {
-        const ws = new WebSocket('ws://localhost:4040/api/ws');
+        // const ws = new WebSocket('ws://localhost:4040/ws');
+        const ws = new WebSocket(`${wsUrl}`);
         setWs(ws);
         ws.addEventListener('message', handleMessage);
         ws.addEventListener('close', () => {
@@ -32,13 +35,18 @@ export default function Chat() {
             }, 1000);
         });
     }
-    function showOnlinePeople (peopleArray) {
+    function showOnlinePeople(peopleArray) {
         const people = {};
-        peopleArray.forEach(({userId,email,username}) => {
-            people[userId] = {email,username};
+
+        peopleArray.forEach(({ userId, email, username }) => {
+            if (username && email) {
+                people[userId] = { email, username };
+            }
         });
+
         setOnlinePeople(people);
     }
+
 
 
 
@@ -51,19 +59,30 @@ export default function Chat() {
     }
 
 
-    function sendMessage (ev) {
+    function sendMessage(ev) {
         ev.preventDefault();
-        ws.send(JSON.stringify({
+
+        if (newMessageText.trim() === '') {
+            // If the input is empty or contains only whitespace, do nothing
+            return;
+        }
+
+        ws.send(
+            JSON.stringify({
                 recipient: selectedUserId,
                 text: newMessageText,
-        }));
+            })
+        );
         setNewMessageText('');
-        setMessages(prev => ([...prev,{
-            text: newMessageText,
-            sender:id,
-            recipient: selectedUserId,
-            _id: Date.now(),
-        }]));
+        setMessages((prev) => [
+            ...prev,
+            {
+                text: newMessageText,
+                sender: id,
+                recipient: selectedUserId,
+                _id: Date.now(),
+            },
+        ]);
     }
 
     useEffect(()=>{
@@ -92,7 +111,7 @@ export default function Chat() {
                 setMessages(res.data);
             });
         }
-    },[selectedUserId])
+    },[selectedUserId ])
 
     function handleMessage(ev) {
         const messageData = JSON.parse(ev.data);
@@ -113,7 +132,7 @@ export default function Chat() {
 
     return (
         <div className="flex h-screen">
-            <div className="bg-[#EFE1D9] w-1/3 flex flex-col">
+            <div className="bg-white w-1/3 flex flex-col">
                 <div className="flex-grow border-r-[1px] border-r-gray-200">
                     {/*LOGO*/}
                     <div className="text-[#ED7A46] font-bold text-lg flex gap-2 p-4 pb-10">
@@ -129,7 +148,11 @@ export default function Chat() {
                                  online={true}
                                  email={onlinePeopleExclOurUser[userId].email}
                                  username={onlinePeopleExclOurUser[userId].username}
-                                 onClick={()=> setSelectedUserId(userId)}
+                                 onClick={(userId, username, email) => {
+                                     setSelectedUserId(userId);
+                                     setSelectedUsername(username);
+                                     setSelectedEmail(email);
+                                 }}
                                  selected={userId === selectedUserId}/>
                     ))}
                     {Object.keys(offlinePeople).map(userId => (
@@ -138,7 +161,11 @@ export default function Chat() {
                                  online={false}
                                  email={offlinePeople[userId].email}
                                  username={offlinePeople[userId].username}
-                                 onClick={()=> setSelectedUserId(userId)}
+                                 onClick={(userId, username, email) => {
+                                     setSelectedUserId(userId);
+                                     setSelectedUsername(username);
+                                     setSelectedEmail(email);
+                                 }}
                                  selected={userId === selectedUserId}/>
                     ))}
                 </div>
@@ -150,15 +177,18 @@ export default function Chat() {
                     <button onClick={logout} className="text-sm bg-red-200 py-1 px-2 text-grey-400 border rounded-md">Log out</button>
                 </div>
             </div>
-            <div className="flex flex-col bg-white w-2/3 ">
+            <div className="flex flex-col bg-[#FDF3E5] w-2/3 ">
                 {!!selectedUserId && (
-                    // Current user info
-                    <div className="flex items-center border-b-2 drop-shadow-md pl-5 py-5">
+                    // Chatting user info
+                    <div className="flex items-center border-b-[1px] border-[#EFE6D8] pl-5 py-5">
                         <div className="w-12 h-12 rounded-full overflow-hidden">
-                            <Gravatar email={email} default="retro" className="w-full h-full object-cover" />
+                            <Gravatar email={selectedEmail} default="retro" className="w-full h-full object-cover" />
                         </div>
                         <div className="ml-4">
-                            <p className="text-lg font-semibold">{selectedUserId}</p>
+                            <p className="text-lg font-semibold">{selectedUsername.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}</p>
+                            {onlinePeopleExclOurUser[selectedUserId] && (
+                                <p className="text-sm text-gray-500">Active</p>
+                            )}
                         </div>
                     </div>
                 )}
@@ -166,23 +196,44 @@ export default function Chat() {
                 <div className="flex-grow px-2">
                     {!selectedUserId && (
                         <div className="flex h-full flex-grow items-center justify-center">
-                            <div className="text-gray-300">&larr; Please Select A Person From The Side Bar</div>
+                            <div className="text-orange-500">&larr; Please Select A Person From The Side Bar</div>
                         </div>
                     )}
                     {!!selectedUserId && (
                         <div className="relative h-full">
-                            <div className="overflow-y-scroll absolute top-0 left-0 right-0 bottom-2">
-                                {messageWithoutDupes.map(message => (
-                                    <div key={message._id} className={(message.sender === id ? 'text-right' : 'text-left')}>
-                                        <div className={"text-left inline-block max-w-xl p-2 my-[1.5px] rounded-lg" +
-                                            " text-sm " + (message.sender === id ? 'bg-[#ED7A46] text-white':'bg-gray-100 text-gray-500')}>
-                                            {message.text}
+                            <div className="overflow-y-scroll absolute top-0 pt-2 left-0 right-0 bottom-2">
+                                {messageWithoutDupes.map(message => {
+                                    const messageDate = new Date(message.createdAt);
+                                    const today = new Date();
+
+                                    const isToday = messageDate.toDateString() === today.toDateString();
+                                    const formattedTime = isToday
+                                        ? messageDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })
+                                        : `${messageDate.toLocaleString('default', { month: 'short', day: 'numeric' })} ${messageDate.toLocaleTimeString([], {
+                                            hour: '2-digit',
+                                            minute: '2-digit',
+                                            hour12: false
+                                        })}`;
+
+
+                                    return (
+                                        <div key={message._id} className={message.sender === id ? 'text-right' : 'text-left'}>
+                                            <div
+                                                className={`text-left inline-block max-w-xl p-2 my-[1.5px] rounded-lg text-sm ${
+                                                    message.sender === id ? 'bg-[#ED7A46] text-white' : 'bg-white text-black'
+                                                }`}
+                                            >
+                                                <p className="">{message.text}</p>
+                                                {/* TODO: message timstamp */}
+                                                {/*<p className="text-[0.65rem]">{formattedTime}</p>*/}
+                                            </div>
                                         </div>
-                                    </div>
-                                ))}
+                                    );
+                                })}
                                 <div ref={divUnderMessages}></div>
                             </div>
                         </div>
+
                     )}
                 </div>
                 {!!selectedUserId && (
