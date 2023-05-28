@@ -4,6 +4,7 @@ import {UserContext} from "./UserContext.jsx";
 import {uniqBy} from "lodash";
 import axios from "axios";
 import Contact from "./Contact.jsx";
+import Gravatar from 'react-gravatar';
 
 export default function Chat() {
     const [ws,setWs] = useState(null);
@@ -11,7 +12,7 @@ export default function Chat() {
     const [offlinePeople, setOfflinePeople] = useState({});
     const [selectedUserId, setSelectedUserId] = useState(null);
     const [newMessageText, setNewMessageText] = useState('');
-    const {username,id,setId,setUsername } = useContext(UserContext);
+    const {email,id,setId,setEmail,username,setUsername } = useContext(UserContext);
     const [messages, setMessages] = useState([]);
     const divUnderMessages = useRef();
 
@@ -20,7 +21,7 @@ export default function Chat() {
         connectToWs();
     }, [selectedUserId]);
     function connectToWs() {
-        const ws = new WebSocket('wss://localhost:4040');
+        const ws = new WebSocket('ws://localhost:4040/ws');
         setWs(ws);
         ws.addEventListener('message', handleMessage);
         ws.addEventListener('close', () => {
@@ -32,8 +33,8 @@ export default function Chat() {
     }
     function showOnlinePeople (peopleArray) {
         const people = {};
-        peopleArray.forEach(({userId,username}) => {
-            people[userId] = username;
+        peopleArray.forEach(({userId,email,username}) => {
+            people[userId] = {email,username};
         });
         setOnlinePeople(people);
     }
@@ -44,7 +45,7 @@ export default function Chat() {
         axios.post('/api/logout',).then(()=> {
             setWs(null);
             setId(null);
-            setUsername(null);
+            setEmail(null);
         });
     }
 
@@ -125,7 +126,8 @@ export default function Chat() {
                         <Contact id={userId}
                                  key={userId}
                                  online={true}
-                                 username={onlinePeopleExclOurUser[userId]}
+                                 email={onlinePeopleExclOurUser[userId].email}
+                                 username={onlinePeopleExclOurUser[userId].username}
                                  onClick={()=> setSelectedUserId(userId)}
                                  selected={userId === selectedUserId}/>
                     ))}
@@ -133,6 +135,7 @@ export default function Chat() {
                         <Contact id={userId}
                                  key={userId}
                                  online={false}
+                                 email={offlinePeople[userId].email}
                                  username={offlinePeople[userId].username}
                                  onClick={()=> setSelectedUserId(userId)}
                                  selected={userId === selectedUserId}/>
@@ -140,16 +143,26 @@ export default function Chat() {
                 </div>
                 <div className="bg-gray-100 rounded-full m-5 mb-2 p-2 text-center flex items-center justify-center">
                     <span className=" mr-2 text-md text-grey-600 flex items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M17.982 18.725A7.488 7.488 0 0012 15.75a7.488 7.488 0 00-5.982 2.975m11.963 0a9 9 0 10-11.963 0m11.963 0A8.966 8.966 0 0112 21a8.966 8.966 0 01-5.982-2.275M15 9.75a3 3 0 11-6 0 3 3 0 016 0z" />
-                        </svg>
+                        <Gravatar email={email} default="retro" className="text-center w-10 mr-2 h-10 object-cover rounded-full"/>
                         {username.charAt(0).toUpperCase() + username.slice(1)}
                     </span>
                     <button onClick={logout} className="text-sm bg-red-200 py-1 px-2 text-grey-400 border rounded-md">Log out</button>
                 </div>
             </div>
-            <div className="flex flex-col bg-white w-2/3 p-2 ">
-                <div className="flex-grow">
+            <div className="flex flex-col bg-white w-2/3 ">
+                {!!selectedUserId && (
+                    // Current user info
+                    <div className="flex items-center border-b-2 drop-shadow-md pl-5 py-5">
+                        <div className="w-12 h-12 rounded-full overflow-hidden">
+                            <Gravatar email={email} default="retro" className="w-full h-full object-cover" />
+                        </div>
+                        <div className="ml-4">
+                            <p className="text-lg font-semibold">{selectedUserId}</p>
+                        </div>
+                    </div>
+                )}
+
+                <div className="flex-grow px-2">
                     {!selectedUserId && (
                         <div className="flex h-full flex-grow items-center justify-center">
                             <div className="text-gray-300">&larr; Please Select A Person From The Side Bar</div>
@@ -160,7 +173,8 @@ export default function Chat() {
                             <div className="overflow-y-scroll absolute top-0 left-0 right-0 bottom-2">
                                 {messageWithoutDupes.map(message => (
                                     <div key={message._id} className={(message.sender === id ? 'text-right' : 'text-left')}>
-                                        <div className={"text-left inline-block p-2 my-2 rounded-lg text-sm " + (message.sender === id ? 'bg-[#ED7A46] text-white':'bg-gray-100 text-gray-500')}>
+                                        <div className={"text-left inline-block max-w-xl p-2 my-[1.5px] rounded-lg" +
+                                            " text-sm " + (message.sender === id ? 'bg-[#ED7A46] text-white':'bg-gray-100 text-gray-500')}>
                                             {message.text}
                                         </div>
                                     </div>
@@ -171,7 +185,7 @@ export default function Chat() {
                     )}
                 </div>
                 {!!selectedUserId && (
-                    <form className="flex gap-2" onSubmit={sendMessage}>
+                    <form className="flex gap-2 p-2" onSubmit={sendMessage}>
                         <input type="text"
                                value={newMessageText}
                                onChange={ev => setNewMessageText(ev.target.value)}
@@ -181,7 +195,6 @@ export default function Chat() {
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
                             </svg>
-
                         </button>
                     </form>
                 )}

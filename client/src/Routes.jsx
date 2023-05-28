@@ -4,9 +4,9 @@ import {UserContext} from "./UserContext.jsx";
 import Chat from "./Chat"
 
 export default function Routes() {
-    const {username, id} = useContext(UserContext);
+    const {email, id, username} = useContext(UserContext);
 
-    if (username){
+    if (email){
         return <Chat/>;
     }
 
