@@ -18,7 +18,7 @@ export default function Chat() {
     const [messages, setMessages] = useState([]);
     const divUnderMessages = useRef();
     const wsUrl = import.meta.env.VITE_WS_URL;
-    console.log(`websocket url is ${wsUrl}`);
+    console.log(`usercontext is ${JSON.stringify(username)}`);
 
     useEffect(() => {
         connectToWs();
@@ -32,6 +32,7 @@ export default function Chat() {
             setTimeout(() => {
                 console.log('Disconnected. Trying to reconnect.');
                 connectToWs();
+                setUsername(username);
             }, 1000);
         });
     }

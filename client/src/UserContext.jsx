@@ -12,6 +12,7 @@ export function UserContextProvider({children}){
            setId(response.data.userId);
            setEmail(response.data.email);
            setUsername(response.data.username);
+           console.log(response.data.userId + response.data.email + response.data.username);
         });
     },[]);
     return(
