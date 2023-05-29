@@ -37,7 +37,7 @@ export default function RegisterAndLoginForm() {
                        className="block w-3/5 rounded-lg p-2 mb-2 border-2 border-[#FEF9EE] mx-auto"/>
                 {isLoginOrRegister === "register" && (
                     <input value={username}
-                           onChange={ev => setUsername(ev.target.value.trim())}
+                           onChange={ev => setUsername(ev)}
                            type="text"
                            placeholder="Username"
                            className="block w-3/5 rounded-lg p-2 mb-2 border-2 border-[#FEF9EE] mx-auto"/>
