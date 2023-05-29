@@ -36,10 +36,10 @@ export default function RegisterAndLoginForm() {
                        placeholder="Email"
                        className="block w-3/5 rounded-lg p-2 mb-2 border-2 border-[#FEF9EE] mx-auto"/>
                 {isLoginOrRegister === "register" && (
-                    <input value={email}
-                           onChange={ev => setEmail(ev.target.value.trim())}
+                    <input value={username}
+                           onChange={ev => setUsername(ev.target.value.trim())}
                            type="text"
-                           placeholder="Email"
+                           placeholder="Username"
                            className="block w-3/5 rounded-lg p-2 mb-2 border-2 border-[#FEF9EE] mx-auto"/>
                 )}
                 <input value={password}

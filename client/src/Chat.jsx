@@ -172,7 +172,7 @@ export default function Chat() {
                 <div className="bg-gray-100 rounded-full m-5 mb-2 p-2 text-center flex items-center justify-center">
                     <span className=" mr-2 text-md text-grey-600 flex items-center">
                         <Gravatar email={email} default="retro" className="text-center w-10 mr-2 h-10 object-cover rounded-full"/>
-                        {username.charAt(0).toUpperCase() + username.slice(1)}
+                        {username}
                     </span>
                     <button onClick={logout} className="text-sm bg-red-200 py-1 px-2 text-grey-400 border rounded-md">Log out</button>
                 </div>
