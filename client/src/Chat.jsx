@@ -88,7 +88,7 @@ export default function Chat() {
     useEffect(() => {
         function handleResize() {
             const width = window.innerWidth;
-            const isMobileView = width < 390;
+            const isMobileView = width < 765;
             setIsMobile(isMobileView);
         };
         handleResize();
@@ -241,7 +241,7 @@ export default function Chat() {
                     )}
                     {!!selectedUserId && (
                         <div className="relative h-full">
-                            <div className="overflow-y-scroll absolute top-0 pt-2 left-0 right-0 bottom-2">
+                            <div className="overflow-y-scroll absolute top-0 pt-2 left-0 right-0 bottom-2 px-4">
                                 {messageWithoutDupes.map((message) => {
                                     const messageDate = new Date(message.createdAt);
                                     const today = new Date();
