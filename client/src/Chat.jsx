@@ -242,7 +242,7 @@ export default function Chat() {
                     {!!selectedUserId && (
                         <div className={`relative h-full`}>
                             {/*message section*/}
-                            <div className={`overflow-y-scroll absolute top-0 pt-2 left-0 right-0 bottom-2 ${isMobile? "pt-[10%]" : ""}`}>
+                            <div className={`overflow-y-scroll overscroll-auto absolute top-0 pt-2 left-0 right-0 bottom-2 ${isMobile? "pt-[10%]" : ""}`}>
                                 {messageWithoutDupes.map((message) => {
                                     const messageDate = new Date(message.createdAt);
                                     const today = new Date();
