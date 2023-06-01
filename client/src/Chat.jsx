@@ -198,10 +198,10 @@ export default function Chat() {
             </div>
 
             {/* conversation section */}
-            <div className={`bg-[#FDF3E5] flex flex-col  ${ isMobile ? (selectedUserId ? "w-full" : "hidden") : "w-2/3"}`}>
+            <div className={`bg-[#FDF3E5] flex flex-col h-full  ${ isMobile ? (selectedUserId ? "w-full" : "hidden") : "w-2/3"}`}>
                 {!!selectedUserId && (
                     // Chatting user info
-                    <div className="flex items-center border-b-[1px] border-[#EFE6D8] pl-5 py-5">
+                    <div className={`flex items-center border-b-[1px] border-[#EFE6D8] pl-5 py-5 ${isMobile ? "sticky" : ""}`}>
                         {/* Mobile Toggle Button */}
                         { isMobile && selectedUserId && (
                             <button
@@ -273,7 +273,7 @@ export default function Chat() {
                     )}
                 </div>
                 {!!selectedUserId && (
-                    <form className="flex gap-2 p-2" onSubmit={sendMessage}>
+                    <form className={`flex gap-2 p-2 ${isMobile? "sticky" : ""}`} onSubmit={sendMessage}>
                         <input type="text"
                                value={newMessageText}
                                onChange={ev => setNewMessageText(ev.target.value)}
