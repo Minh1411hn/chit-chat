@@ -201,7 +201,7 @@ export default function Chat() {
             <div className={`bg-[#FDF3E5] flex flex-col  ${ isMobile ? (selectedUserId ? "w-full" : "hidden") : "w-2/3"}`}>
                 {!!selectedUserId && (
                     // Chatting user info
-                    <div className={`flex items-center border-b-[1px] border-[#EFE6D8] pl-5 py-5 ${isMobile? "sticky top-0" :""}`}>
+                    <div className={`bg-[#FDF3E5] flex items-center border-b-[1px] border-[#EFE6D8] pl-5 py-5 ${isMobile? "sticky top-0" :""}`}>
                         {/* Mobile Toggle Button */}
                         { isMobile && selectedUserId && (
                             <button
@@ -233,7 +233,7 @@ export default function Chat() {
                     // Chatting user info
                 )}
 
-                <div className={`flex-grow ${isMobile? "" : "px-2"}`}>
+                <div className={`flex-grow px-2`}>
                     {!selectedUserId && !isMobile && (
                         <div className="flex h-full flex-grow items-center justify-center">
                             <div className="text-orange-500">&larr; Please Select A Person From The Side Bar</div>
@@ -242,7 +242,7 @@ export default function Chat() {
                     {!!selectedUserId && (
                         <div className={`relative h-full`}>
                             {/*message section*/}
-                            <div className={`overflow-y-scroll absolute top-0 pt-2 left-0 right-0 bottom-2 px-4 `}>
+                            <div className={`overflow-y-scroll absolute top-0 pt-2 left-0 right-0 bottom-2`}>
                                 {messageWithoutDupes.map((message) => {
                                     const messageDate = new Date(message.createdAt);
                                     const today = new Date();
@@ -276,7 +276,7 @@ export default function Chat() {
                 </div>
 
                 {!!selectedUserId && (
-                    <form className={`flex gap-2 p-2 ${isMobile? "sticky bottom-0 h-[7%]":""}`} onSubmit={sendMessage}>
+                    <form className={`bg-[#FDF3E5] flex gap-2 p-2 ${isMobile? "sticky bottom-0 h-[7%]":""}`} onSubmit={sendMessage}>
                         <input type="text"
                                value={newMessageText}
                                onChange={ev => setNewMessageText(ev.target.value)}
