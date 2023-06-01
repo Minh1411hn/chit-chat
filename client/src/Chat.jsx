@@ -240,8 +240,9 @@ export default function Chat() {
                         </div>
                     )}
                     {!!selectedUserId && (
-                        <div className="relative h-full">
-                            <div className="overflow-y-scroll absolute top-0 pt-2 left-0 right-0 bottom-2 px-4">
+                        <div className={`relative ${isMobile ? "h-[93%]" : "h-full"}`}>
+                            {/*message section*/}
+                            <div className={`overflow-y-scroll absolute top-0 pt-2 left-0 right-0 bottom-2 px-4 `}>
                                 {messageWithoutDupes.map((message) => {
                                     const messageDate = new Date(message.createdAt);
                                     const today = new Date();
@@ -268,12 +269,13 @@ export default function Chat() {
                                     );
                                 })}
                                 <div ref={divUnderMessages}></div>
+                            {/* message section */}
                             </div>
                         </div>
                     )}
                 </div>
                 {!!selectedUserId && (
-                    <form className="flex gap-2 p-2" onSubmit={sendMessage}>
+                    <form className={`flex gap-2 p-2 ${isMobile? "fixed bottom-0" : ""}`} onSubmit={sendMessage}>
                         <input type="text"
                                value={newMessageText}
                                onChange={ev => setNewMessageText(ev.target.value)}
