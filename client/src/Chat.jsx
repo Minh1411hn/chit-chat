@@ -201,7 +201,7 @@ export default function Chat() {
             <div className={`bg-[#FDF3E5] flex flex-col  ${ isMobile ? (selectedUserId ? "w-full" : "hidden") : "w-2/3"}`}>
                 {!!selectedUserId && (
                     // Chatting user info
-                    <div className={`bg-[#FDF3E5] flex items-center border-b-[1px] border-[#EFE6D8] pl-5 py-5 ${isMobile? "sticky top-0" :""}`}>
+                    <div className={`bg-[#FDF3E5] flex items-center border-b-[1px] border-[#EFE6D8] pl-5 py-5 ${isMobile? "object-top sticky top-0" :""}`}>
                         {/* Mobile Toggle Button */}
                         { isMobile && selectedUserId && (
                             <button
@@ -242,7 +242,7 @@ export default function Chat() {
                     {!!selectedUserId && (
                         <div className={`relative h-full`}>
                             {/*message section*/}
-                            <div className={`overflow-y-scroll absolute top-0 pt-2 left-0 right-0 bottom-2`}>
+                            <div className={`overflow-y-scroll absolute top-0 pt-2 left-0 right-0 bottom-2 ${isMobile? "pt-[10%]" : ""}`}>
                                 {messageWithoutDupes.map((message) => {
                                     const messageDate = new Date(message.createdAt);
                                     const today = new Date();
