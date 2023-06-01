@@ -8,7 +8,7 @@ export default function Contact({id,email,onClick,selected,online,username}) {
                 <Avatar online={online} email={email} userId={id} />
             </div>
             <div className="flex gap-2 pl-5 pt-3">
-                <span className="text-gray-800 text-md">{username.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}</span>
+                <span className="text-gray-800 text-[13px] font-normal">{username.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}</span>
             </div>
         </div>
     );

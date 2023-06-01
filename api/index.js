@@ -81,21 +81,29 @@ app.get('/api/profile', (req,res) => {
     }
 });
 
-app.post('/api/login', async (req,res) => {
-    const {email, password} = req.body;
-    const foundUser = await User.findOne({email});
-    if (foundUser) {
-        const passOk = bcrypt.compareSync(password, foundUser.password);
-        if (passOk) {
-            jwt.sign({userId:foundUser._id,email, username: foundUser.username}, jwtSecret, {}, (err, token) => {
-                    res.cookie('token', token, {sameSite:'none', secure:true}).json({
-                    id: foundUser._id,
-                    username: foundUser.username,
-                });
-            });
-        }
+app.post('/api/login', async (req, res) => {
+    const { email, password } = req.body;
+    const foundUser = await User.findOne({ email });
+
+    if (!foundUser) {
+        // If the email is not found, respond with a 404 error
+        return res.status(404).json({ message: 'Email not found' });
     }
+
+    const passOk = bcrypt.compareSync(password, foundUser.password);
+    if (!passOk) {
+        // If the password is incorrect, respond with a 401 error
+        return res.status(401).json({ message: 'Incorrect password' });
+    }
+
+    jwt.sign({ userId: foundUser._id, email, username: foundUser.username }, jwtSecret, {}, (err, token) => {
+        res.cookie('token', token, { sameSite: 'none', secure: true }).json({
+            id: foundUser._id,
+            username: foundUser.username,
+        });
+    });
 });
+
 
 app.post('/api/logout', (req,res)=>{
     res.cookie('token', '', {sameSite:'none', secure:true}).json('ok');
@@ -147,7 +155,7 @@ wss.on('connection', (connection, req) => {
             connection.terminate();
             notifyAboutOnlinePeople();
         }, 1000);
-    }, 5000);
+    }, 1000);
 
     connection.on('pong', () => {
         clearTimeout(connection.deathTimer);
