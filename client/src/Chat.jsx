@@ -198,7 +198,7 @@ export default function Chat() {
             </div>
 
             {/* conversation section */}
-            <div className={`bg-[#FDF3E5] flex flex-col h-full  ${ isMobile ? (selectedUserId ? "w-full" : "hidden") : "w-2/3"}`}>
+            <div className={`bg-[#FDF3E5] flex flex-col  ${ isMobile ? (selectedUserId ? "w-full" : "hidden") : "w-2/3"}`}>
                 {!!selectedUserId && (
                     // Chatting user info
                     <div className={`flex items-center border-b-[1px] border-[#EFE6D8] pl-5 py-5 ${isMobile ? "sticky top-0" : ""}`}>
@@ -233,7 +233,7 @@ export default function Chat() {
                     // Chatting user info
                 )}
 
-                <div className={`flex-grow ${isMobile? "" : "px-2"}`}>
+                <div className={`flex-grow ${isMobile ? "h-screen" : ""}  ${isMobile? "" : "px-2"} `}>
                     {!selectedUserId && !isMobile && (
                         <div className="flex h-full flex-grow items-center justify-center">
                             <div className="text-orange-500">&larr; Please Select A Person From The Side Bar</div>
