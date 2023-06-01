@@ -145,7 +145,7 @@ export default function Chat() {
     const messageWithoutDupes = uniqBy(messages, '_id');
 
     return (
-        <div className="flex h-screen overflow-hidden">
+        <div className="flex h-screen">
             <div className={`bg-white flex flex-col ${isMobile? (selectedUserId ? "hidden" : "w-full") : "w-1/3" } md:flex`}>
                 {/*LOGO*/}
                 <div className="text-[#ED7A46] font-bold text-lg flex gap-2 p-4 pb-10">
@@ -240,7 +240,7 @@ export default function Chat() {
                         </div>
                     )}
                     {!!selectedUserId && (
-                        <div className={`relative ${isMobile ? "h-[93%]" : "h-full"}`}>
+                        <div className={`relative h-full`}>
                             {/*message section*/}
                             <div className={`overflow-y-scroll absolute top-0 pt-2 left-0 right-0 bottom-2 px-4 `}>
                                 {messageWithoutDupes.map((message) => {
@@ -275,7 +275,7 @@ export default function Chat() {
                     )}
                 </div>
                 {!!selectedUserId && (
-                    <form className={`flex gap-2 p-2 ${isMobile? "fixed bottom-0" : ""}`} onSubmit={sendMessage}>
+                    <form className={`flex gap-2 p-2 `} onSubmit={sendMessage}>
                         <input type="text"
                                value={newMessageText}
                                onChange={ev => setNewMessageText(ev.target.value)}
