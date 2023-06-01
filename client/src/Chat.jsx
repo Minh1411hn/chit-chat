@@ -88,7 +88,7 @@ export default function Chat() {
     useEffect(() => {
         function handleResize() {
             const width = window.innerWidth;
-            const isMobileView = width < 390;
+            const isMobileView = width < 765;
             setIsMobile(isMobileView);
         };
         handleResize();
