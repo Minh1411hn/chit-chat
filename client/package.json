@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "autoprefixer": "^10.4.14",
-    "aws-sdk": "^2.1387.0",
+    "aws-sdk": "^2.1388.0",
     "axios": "^1.4.0",
     "bootstrap": "^5.2.3",
     "buffer": "^6.0.3",
@@ -22,7 +22,8 @@
     "react": "^18.2.0",
     "react-bootstrap": "^2.7.4",
     "react-dom": "^18.2.0",
-    "react-gravatar": "^2.6.3"
+    "react-gravatar": "^2.6.3",
+    "react-modal": "^3.16.1"
   },
   "devDependencies": {
     "@types/react": "^18.0.28",

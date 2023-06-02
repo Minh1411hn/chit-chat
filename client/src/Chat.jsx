@@ -1,10 +1,26 @@
 import {useContext, useEffect, useRef, useState} from "react";
-import Avatar from "./Avatar.jsx";
 import {UserContext} from "./UserContext.jsx";
 import {uniqBy} from "lodash";
 import axios from "axios";
 import Contact from "./Contact.jsx";
 import Gravatar from 'react-gravatar';
+import LogoImg from '../assets/logo-full.svg';
+import DesktopPanel from "./DesktopPanel.jsx";
+import PanelMessages from "./PanelMessages.jsx";
+import PanelSettings from "./PanelSettings.jsx";
+import PanelProfile from "./PanelProfile.jsx";
+import MobilePanel from "./MobilePanel.jsx";
+
+const customStyles = {
+    content: {
+        top: '50%',
+        left: '50%',
+        right: 'auto',
+        bottom: 'auto',
+        marginRight: '-50%',
+        transform: 'translate(-50%, -50%)',
+    },
+};
 
 export default function Chat() {
     const [ws,setWs] = useState(null);
@@ -19,6 +35,10 @@ export default function Chat() {
     const divUnderMessages = useRef();
     const wsUrl = import.meta.env.VITE_WS_URL;
     const [isMobile, setIsMobile] = useState(false);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [appearance , setAppearance] = useState('light')
+    const [searchingPeople, setSearchingPeople] = useState('');
+    const [selectedPanelSection, setSelectedPanelSection] = useState('messages');
 
     useEffect(() => {
         connectToWs();
@@ -48,6 +68,12 @@ export default function Chat() {
         setOnlinePeople(people);
     }
 
+    function handleOpenModal() {
+        setIsModalOpen(true);
+    }
+    function handleCloseModal() {
+        setIsModalOpen(false);
+    }
 
     function logout() {
         axios.post('/api/logout',).then(()=> {
@@ -70,6 +96,7 @@ export default function Chat() {
             JSON.stringify({
                 recipient: selectedUserId,
                 text: newMessageText,
+                createdAt: Date.now(),
             })
         );
         setNewMessageText('');
@@ -84,6 +111,7 @@ export default function Chat() {
             },
         ]);
     }
+
 
     useEffect(() => {
         function handleResize() {
@@ -146,62 +174,51 @@ export default function Chat() {
 
     return (
         <div className="flex h-screen">
-            <div className={`bg-white flex flex-col ${isMobile? (selectedUserId ? "hidden" : "w-full") : "w-1/3" } md:flex`}>
-                {/*LOGO*/}
-                <div className="text-[#ED7A46] font-bold text-lg flex gap-2 p-4 pb-10">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 8.511c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193-.34.027-.68.052-1.02.072v3.091l-3-3c-1.354 0-2.694-.055-4.02-.163a2.115 2.115 0 01-.825-.242m9.345-8.334a2.126 2.126 0 00-.476-.095 48.64 48.64 0 00-8.048 0c-1.131.094-1.976 1.057-1.976 2.192v4.286c0 .837.46 1.58 1.155 1.951m9.345-8.334V6.637c0-1.621-1.152-3.026-2.76-3.235A48.455 48.455 0 0011.25 3c-2.115 0-4.198.137-6.24.402-1.608.209-2.76 1.614-2.76 3.235v6.226c0 1.621 1.152 3.026 2.76 3.235.577.075 1.157.14 1.74.194V21l4.155-4.155" />
-                    </svg>
-                    CHAT CHAT
-                </div>
-                {/*LOGO*/}
-                <div className="flex-grow overflow-y-auto border-r-[1px] border-r-gray-200">
-                    <div className="flex flex-col flex-grow">
-                        {Object.keys(onlinePeopleExclOurUser).map(userId => (
-                            <Contact id={userId}
-                                     key={userId}
-                                     online={true}
-                                     email={onlinePeopleExclOurUser[userId].email}
-                                     username={onlinePeopleExclOurUser[userId].username}
-                                     onClick={(userId, username, email) => {
-                                         setSelectedUserId(userId);
-                                         setSelectedUsername(username);
-                                         setSelectedEmail(email);
-                                     }}
-                                     selected={userId === selectedUserId}/>
-                        ))}
-                        {Object.keys(offlinePeople).map(userId => (
-                            <Contact id={userId}
-                                     key={userId}
-                                     online={false}
-                                     email={offlinePeople[userId].email}
-                                     username={offlinePeople[userId].username}
-                                     onClick={(userId, username, email) => {
-                                         setSelectedUserId(userId);
-                                         setSelectedUsername(username);
-                                         setSelectedEmail(email);
-                                     }}
-                                     selected={userId === selectedUserId}/>
-                        ))}
-                    </div>
-                </div>
+            <DesktopPanel appearance={appearance}
+                          isMobile={isMobile}
+                          selectedPanelSection={selectedPanelSection}
+                          onClick={(selectedPanelSection) =>{
+                        setSelectedPanelSection(selectedPanelSection);}
+                        }
+            />
 
-                {/* my profile section */}
-                <div className=" bottom-0 bg-gray-100 h-10 rounded-full m-5 mb-2 p-2 text-center flex items-center justify-center">
-                    <span className=" mr-2 text-md text-grey-600 flex items-center">
-                        <Gravatar email={email} default="retro" className="text-center w-8 h-8 mr-2 object-cover rounded-full"/>
-                        {username}
-                    </span>
-                    <button onClick={logout} className="text-sm bg-red-200 py-1 px-2 text-grey-400 border rounded-md">Log out</button>
-                </div>
-                {/* my profile section */}
+            <div className={`bg-white flex flex-col border-r-gray-200 border-r-[1px] ${isMobile? (selectedUserId ? "hidden" : "w-full") : "w-[20%]" } md:flex`}>
+                {selectedPanelSection === 'messages' ? (
+                    <PanelMessages
+                        isMobile={isMobile}
+                        selectedUserId={selectedUserId}
+                        onlinePeopleExclOurUser={onlinePeopleExclOurUser}
+                        offlinePeople={offlinePeople}
+                        searchingPeople={searchingPeople}
+                        setSearchingPeople={setSearchingPeople}
+                        setSelectedUserId={setSelectedUserId}
+                        setSelectedUsername={setSelectedUsername}
+                        setSelectedEmail={setSelectedEmail}
+                    />
+                ) : selectedPanelSection === 'profile' ? (
+                    <PanelProfile isMobile={isMobile}
+                                  username={username}
+                                  email={email}
+                                  id={id}
+                                  selectedUserId={selectedUserId} logout={logout}/>
+                ) : selectedPanelSection === 'settings' ? (
+                    <PanelSettings isMobile={isMobile}/>
+                ) : null}
+                {isMobile && (
+                    <MobilePanel isMobile={isMobile}
+                                 selectedPanelSection={selectedPanelSection}
+                                 onClick={(selectedPanelSection) => {
+                                    setSelectedPanelSection(selectedPanelSection);}
+                                 }/>
+                )}
             </div>
 
+
             {/* conversation section */}
-            <div className={`bg-[#FDF3E5] flex flex-col  ${ isMobile ? (selectedUserId ? "w-full" : "hidden") : "w-2/3"}`}>
+            <div className={`bg-white flex flex-col ${ isMobile ? (selectedUserId ? "w-full" : "hidden") : "w-[76%]"}`}>
                 {!!selectedUserId && (
                     // Chatting user info
-                    <div className={`bg-[#FDF3E5] flex items-center border-b-[1px] border-[#EFE6D8] pl-5 py-5 ${isMobile? "object-top sticky top-0" :""}`}>
+                    <div className={` bg-white flex items-center border-b-[1px] border-gray-100 pl-5 py-5 ${isMobile? "object-top sticky top-0" :""}`}>
                         {/* Mobile Toggle Button */}
                         { isMobile && selectedUserId && (
                             <button
@@ -215,8 +232,6 @@ export default function Chat() {
                                     <path stroke-linecap="round" stroke-linejoin="round"
                                           d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"/>
                                 </svg>
-
-
                             </button>
                         )}
                         {/* Mobile Toggle Button */}
@@ -224,9 +239,9 @@ export default function Chat() {
                             <Gravatar email={selectedEmail} default="retro" className="w-full h-full object-cover" />
                         </div>
                         <div className="ml-4">
-                            <p className="text-lg font-semibold">{selectedUsername.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}</p>
+                            <p className="text-sm font-semibold">{selectedUsername.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}</p>
                             {onlinePeopleExclOurUser[selectedUserId] && (
-                                <p className="text-sm text-gray-500">Active</p>
+                                <p className="text-xs text-gray-500">Active</p>
                             )}
                         </div>
                     </div>
@@ -259,7 +274,7 @@ export default function Chat() {
                                         <div key={message._id} className={messageClassName}>
                                             <div
                                                 className={`text-left inline-block max-w-xl p-2 my-[1.5px] rounded-lg text-sm ${
-                                                    message.sender === id ? 'bg-[#ED7A46] text-white' : 'bg-white text-black'
+                                                    message.sender === id ? 'bg-[#ED7A46] text-white' : 'bg-gray-100 text-black'
                                                 }`}
                                             >
                                                 <p>{message.text}</p>
@@ -276,7 +291,7 @@ export default function Chat() {
                 </div>
 
                 {!!selectedUserId && (
-                    <form className={`bg-[#FDF3E5] flex gap-2 p-2 ${isMobile? "sticky bottom-0 h-[7%]":""}`} onSubmit={sendMessage}>
+                    <form className={`bg-white border-t-[1px] border-gray-100 flex gap-2 p-5 ${isMobile? "sticky bottom-0 h-[9%]":""}`} onSubmit={sendMessage}>
                         <input type="text"
                                value={newMessageText}
                                onChange={ev => setNewMessageText(ev.target.value)}

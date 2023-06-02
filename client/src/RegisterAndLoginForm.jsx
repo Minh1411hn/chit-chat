@@ -1,8 +1,8 @@
 import {useContext, useState} from "react";
 import axios from "axios";
 import {UserContext} from "./UserContext.jsx";
-// import {Alert} from 'react-bootstrap';
-// import 'bootstrap/dist/css/bootstrap.min.css'
+import Gravatar from "react-gravatar";
+
 export default function RegisterAndLoginForm() {
     const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
@@ -10,16 +10,6 @@ export default function RegisterAndLoginForm() {
     const [isLoginOrRegister, setIsLoginOrRegister] = useState('login');
     const [loginError, setLoginError] = useState(null);
     const {setEmail:setLoggedInEmail, setId,setUsername:setLoggedInUsername } = useContext(UserContext);
-
-
-    // async function handleSubmit(ev){
-    //      ev.preventDefault();
-    //      const url = isLoginOrRegister ==="register" ? "/api/register" : "/api/login";
-    //      const {data} = await axios.post(url, {email,password,username},{withCredentials:true});
-    //      setLoggedInEmail(email);
-    //      setId(data.id);
-    //      setLoggedInUsername(data.username);
-    // }
 
     async function handleSubmit(ev) {
         ev.preventDefault();
