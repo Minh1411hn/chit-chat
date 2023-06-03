@@ -11,17 +11,6 @@ import PanelSettings from "./PanelSettings.jsx";
 import PanelProfile from "./PanelProfile.jsx";
 import MobilePanel from "./MobilePanel.jsx";
 
-const customStyles = {
-    content: {
-        top: '50%',
-        left: '50%',
-        right: 'auto',
-        bottom: 'auto',
-        marginRight: '-50%',
-        transform: 'translate(-50%, -50%)',
-    },
-};
-
 export default function Chat() {
     const [ws,setWs] = useState(null);
     const [onlinePeople, setOnlinePeople] = useState({});
@@ -29,8 +18,9 @@ export default function Chat() {
     const [selectedUserId, setSelectedUserId] = useState(null);
     const [selectedUsername, setSelectedUsername] = useState(null);
     const [selectedEmail, setSelectedEmail] = useState(null);
+    const [selectedAvatar, setSelectedAvatar] = useState(null);
     const [newMessageText, setNewMessageText] = useState('');
-    const {email,id,setId,setEmail,username,setUsername } = useContext(UserContext);
+    const {email,id,setId,setEmail,username,setUsername, avatar, setAvatar } = useContext(UserContext);
     const [messages, setMessages] = useState([]);
     const divUnderMessages = useRef();
     const wsUrl = import.meta.env.VITE_WS_URL;
@@ -59,20 +49,13 @@ export default function Chat() {
     function showOnlinePeople(peopleArray) {
         const people = {};
 
-        peopleArray.forEach(({ userId, email, username }) => {
-            if (username && email) {
-                people[userId] = { email, username };
+        peopleArray.forEach(({ userId, email, username, avatar }) => {
+            if (username && email && avatar) {
+                people[userId] = { email, username, avatar };
             }
         });
 
         setOnlinePeople(people);
-    }
-
-    function handleOpenModal() {
-        setIsModalOpen(true);
-    }
-    function handleCloseModal() {
-        setIsModalOpen(false);
     }
 
     function logout() {
@@ -172,6 +155,8 @@ export default function Chat() {
 
     const messageWithoutDupes = uniqBy(messages, '_id');
 
+    // console.log(`onlinePeopleExclOurUser ${JSON.stringify(onlinePeopleExclOurUser)}`);
+
     return (
         <div className="flex h-screen">
             <DesktopPanel appearance={appearance}
@@ -194,12 +179,14 @@ export default function Chat() {
                         setSelectedUserId={setSelectedUserId}
                         setSelectedUsername={setSelectedUsername}
                         setSelectedEmail={setSelectedEmail}
+                        setSelectedAvatar={setSelectedAvatar}
                     />
                 ) : selectedPanelSection === 'profile' ? (
                     <PanelProfile isMobile={isMobile}
                                   username={username}
                                   email={email}
                                   id={id}
+                                  avatar={avatar}
                                   selectedUserId={selectedUserId} logout={logout}/>
                 ) : selectedPanelSection === 'settings' ? (
                     <PanelSettings isMobile={isMobile}/>
@@ -228,15 +215,19 @@ export default function Chat() {
                                 }}
                             >
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                     stroke-width="1.5" stroke="currentColor" className="w-6 h-6">
-                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                     strokeWidth="1.5" stroke="currentColor" className="w-6 h-6">
+                                    <path strokeLinecap="round" strokeLinejoin="round"
                                           d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"/>
                                 </svg>
                             </button>
                         )}
                         {/* Mobile Toggle Button */}
                         <div className="w-10 h-10 rounded-full overflow-hidden">
-                            <Gravatar email={selectedEmail} default="retro" className="w-full h-full object-cover" />
+                            {selectedAvatar ? (
+                                <img src={selectedAvatar} alt="" className="w-full h-full object-cover"/>
+                            ): (
+                                <Gravatar email={selectedEmail} default="retro" className="w-full h-full object-cover"/>
+                            )}
                         </div>
                         <div className="ml-4">
                             <p className="text-sm font-semibold">{selectedUsername.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}</p>

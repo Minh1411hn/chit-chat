@@ -7,16 +7,17 @@ export function UserContextProvider({children}){
     const [email, setEmail] = useState(null);
     const [username, setUsername] = useState(null);
     const [id, setId] = useState(null);
+    const [avatar, setAvatar] = useState(null);
     useEffect(()=>{
         axios.get('/api/profile').then(response => {
            setId(response.data.userId);
            setEmail(response.data.email);
            setUsername(response.data.username);
-           console.log(response.data.userId + response.data.email + response.data.username);
+           setAvatar(response.data.avatar);
         });
     },[]);
     return(
-        <UserContext.Provider value={{email,  setEmail, id, setId, username, setUsername}}>
+        <UserContext.Provider value={{email,  setEmail, id, setId, username, setUsername, avatar,setAvatar}}>
             {children}
         </UserContext.Provider>
     );
