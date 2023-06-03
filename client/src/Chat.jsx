@@ -42,7 +42,6 @@ export default function Chat() {
             setTimeout(() => {
                 console.log('Disconnected. Trying to reconnect.');
                 connectToWs();
-                setUsername(username);
             }, 1000);
         });
     }
