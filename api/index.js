@@ -166,7 +166,7 @@ app.post('/api/forgot-password', async (req, res) => {
 
         await user.save();
 
-        axios.post('https://hooks.airtable.com/workflows/v1/genericWebhook/appp8a6U4xCCrCpHz/wflI8ARkAR9fd1sNS/wtranLdiSvig5Vnsg', {
+        axios.post(process.env.EMAIL_HOOKS, {
             email: email,
             token: `${process.env.CLIENT_URL}/?token=${token}`,
             user: user.username,
