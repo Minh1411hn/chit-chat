@@ -13,6 +13,9 @@ const timers = require("timers");
 const cloudinary = require('cloudinary').v2;
 const multer = require('multer');
 const md5 = require('blueimp-md5');
+const { v4: uuidv4 } = require('uuid');
+const nodemailer = require('nodemailer');
+const axios = require('axios');
 
 dotenv.config();
 mongoose.connect(process.env.MONGO_URL)
@@ -27,6 +30,7 @@ const jwtSecret = process.env.JWT_SECRET;
 const bcryptSalt = bcrypt.genSaltSync(10);
 
 
+const token = uuidv4();
 const app = express();
 app.use(cookieParser());
 app.use(express.json());
@@ -35,6 +39,14 @@ app.use(cors({
     origin: [`${process.env.CLIENT_URL}`],
 }));
 app.set("trust proxy", 1);
+
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: process.env.NODEMAILER_USER,
+        pass: process.env.NODEMAILER_PASS,
+    },
+});
 
 async function getUserDataFromRequest(req) {
     return new Promise((resolve, reject) => {
@@ -136,6 +148,93 @@ app.get('/api/profile', (req,res) => {
     }
 });
 
+app.post('/api/forgot-password', async (req, res) => {
+    const { email } = req.body;
+
+    try {
+        // Search for the email in the database
+        const user = await User.findOne({ email });
+
+        if (!user) {
+            return res.status(404).json({ message: 'Email not found' });
+        }
+
+        const token = uuidv4();
+
+        user.resetPasswordToken = token;
+        user.resetPasswordExpires = Date.now() + 3600000;
+
+        await user.save();
+
+        axios.post('https://hooks.airtable.com/workflows/v1/genericWebhook/appp8a6U4xCCrCpHz/wflI8ARkAR9fd1sNS/wtranLdiSvig5Vnsg', {
+            email: email,
+            token: `${process.env.CLIENT_URL}/?token=${token}`,
+            user: user.username,
+        },{
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+            .then(function (response) {
+                console.log(response);
+            })
+            .catch(function (error) {
+                console.log(error);
+            });
+        res.status(200).json({ message: 'Reset password email sent successfully' });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+app.post('/api/reset-password', async (req, res) => {
+    const { email, id, password } = req.body;
+    try {
+        const hashedPassword = bcrypt.hashSync(password,bcryptSalt);
+        const user = await User.findByIdAndUpdate(id, { password: hashedPassword }, { new: true });
+
+        jwt.sign({userId:id,email,username:user.username,avatar:user.avatar}, jwtSecret, {}, (err, token) => {
+            if (err) throw err;
+            res.cookie('token', token, {sameSite:'none', secure:true}).status(201).json({
+                id: user._id,
+                email,
+                username: user.username,
+                avatar: user.avatar,
+            });
+        });
+    } catch(err) {
+        if (err) throw err;
+        res.status(500).json('error')
+    }
+
+});
+
+
+
+app.get('/api/reset-password/:token', async (req, res) => {
+    const { token } = req.params;
+
+    try {
+        // Find the user with the matching token in the database
+        const user = await User.findOne({
+            resetPasswordToken: token,
+            resetPasswordExpires: { $gt: Date.now() }
+        });
+
+        if (!user) {
+            res.status(404).json({ message: 'Invalid or expired token' });
+        } else {
+            res.status(200).json({ username: user.username, userId: user._id, avatar: user.avatar, email: user.email });
+        }
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+
 app.post('/api/login', async (req, res) => {
     const { email, password } = req.body;
     const foundUser = await User.findOne({ email });
@@ -176,7 +275,7 @@ app.post('/api/register', async (req, res) => {
            username:username,
        });
 
-       jwt.sign({userId:createdUser._id,email,usernamem}, jwtSecret, {}, (err, token) => {
+       jwt.sign({userId:createdUser._id,email,username}, jwtSecret, {}, (err, token) => {
            if (err) throw err;
            res.cookie('token', token, {sameSite:'none', secure:true}).status(201).json({
                id: createdUser._id,
