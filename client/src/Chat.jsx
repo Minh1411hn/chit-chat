@@ -69,10 +69,10 @@ export default function Chat() {
     function sendMessage(ev, file = null) {
         if (ev) ev.preventDefault();
 
-        // if (newMessageText.trim() === '' && !file) {
-        //     // If the input is empty or contains only whitespace, do nothing
-        //     return;
-        // }
+        if (newMessageText.trim() === '' && !file) {
+            // If the input is empty or contains only whitespace, do nothing
+            return;
+        }
 
         ws.send(
             JSON.stringify({
@@ -83,12 +83,11 @@ export default function Chat() {
             })
         );
 
-        console.log(file);
         if (file) {
             setTimeout(() => {
                 axios.get('/api/messages/' + selectedUserId)
                     .then(res => {
-                        setMessages(res.data);
+                        // setMessages(res.data);
                     })
                     .catch(error => {
                         console.error('Error retrieving messages:', error);
@@ -142,7 +141,9 @@ export default function Chat() {
         if (div) {
             div.scrollIntoView({behavior:'smooth',block:'end'});
         }
-    }, [messages]);
+    }, [messages,ws]);
+
+
 
     useEffect(()=> {
         axios.get('/api/people').then(resp=>{
@@ -157,13 +158,15 @@ export default function Chat() {
         })
     }, [onlinePeople]);
 
+
     useEffect(()=> {
         if (selectedUserId) {
             axios.get('/api/messages/'+selectedUserId).then(res => {
                 setMessages(res.data);
             });
         }
-    },[selectedUserId ])
+    },[selectedUserId,ws,messages ])
+
 
     function handleMessage(ev) {
         const messageData = JSON.parse(ev.data);
@@ -296,9 +299,9 @@ export default function Chat() {
                                             >
                                                 <p>{message.text}</p>
                                                 {message.file && (
-                                                    <div>
-                                                        <img src={message.file} alt="" />
-                                                    </div>
+                                                    <a href={message.file} target="_blank">
+                                                        <img src={message.file.replace(/\/upload\//, '/upload/c_limit,q_50,w_500/')} alt="" />
+                                                    </a>
                                                 )}
                                                 <p className={`text-[0.65rem] ${timestampClassName}`}>{formattedTime}</p>
                                             </div>
@@ -320,7 +323,7 @@ export default function Chat() {
                                placeholder="Type Here"
                                className="bg-white flex-grow border p-2 rounded-full"/>
                         <label className="bg-[#ED7A46] pl-2 pr-2 text-white rounded-full cursor-pointer">
-                            <input type="file" className="hidden" onChange={sendFile} />
+                            <input type="file" className="hidden" accept="image/*" onChange={sendFile} />
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                                  stroke="currentColor" className="w-6 h-6">
                                 <path stroke-linecap="round" stroke-linejoin="round"
