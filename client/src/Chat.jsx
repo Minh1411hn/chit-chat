@@ -10,6 +10,8 @@ import PanelMessages from "./PanelMessages.jsx";
 import PanelSettings from "./PanelSettings.jsx";
 import PanelProfile from "./PanelProfile.jsx";
 import MobilePanel from "./MobilePanel.jsx";
+import Alert from "@mui/material/Alert";
+import Snackbar from "@mui/material/Snackbar";
 
 export default function Chat() {
     const [ws,setWs] = useState(null);
@@ -29,6 +31,7 @@ export default function Chat() {
     const [appearance , setAppearance] = useState('light')
     const [searchingPeople, setSearchingPeople] = useState('');
     const [selectedPanelSection, setSelectedPanelSection] = useState('messages');
+    const [showToast, setShowToast] = useState(false);
 
     useEffect(() => {
         connectToWs();
@@ -139,10 +142,13 @@ export default function Chat() {
     useEffect(()=>{
         const div = divUnderMessages.current;
         if (div) {
-            div.scrollIntoView({behavior:'smooth',block:'end'});
+            div.scrollIntoView({behavior:'instant',block:'end'});
         }
-    }, [messages,ws]);
+    }, [messages]);
 
+    const handleToast = () => {
+        setShowToast(!showToast);
+    };
 
 
     useEffect(()=> {
@@ -156,7 +162,7 @@ export default function Chat() {
             });
             setOfflinePeople(offlinePeople);
         })
-    }, [onlinePeople]);
+    }, [onlinePeople,messages]);
 
 
     useEffect(()=> {
@@ -165,7 +171,7 @@ export default function Chat() {
                 setMessages(res.data);
             });
         }
-    },[selectedUserId,ws,messages ])
+    },[selectedUserId,messages.file]);
 
 
     function handleMessage(ev) {
@@ -188,9 +194,20 @@ export default function Chat() {
 
     return (
         <div className="flex h-screen">
+            <Snackbar
+                open={showToast}
+                autoHideDuration={2000}
+                onClose={handleToast}
+                anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+            >
+                <Alert onClose={handleToast} severity="warning" sx={{ width: '100%' }} closeButton={false} >
+                    This feature is not available yet.
+                </Alert>
+            </Snackbar>
             <DesktopPanel appearance={appearance}
                           isMobile={isMobile}
                           selectedPanelSection={selectedPanelSection}
+                          setToast={handleToast}
                           onClick={(selectedPanelSection) =>{
                               setSelectedPanelSection(selectedPanelSection);}
                           }
@@ -209,6 +226,7 @@ export default function Chat() {
                         setSelectedUsername={setSelectedUsername}
                         setSelectedEmail={setSelectedEmail}
                         setSelectedAvatar={setSelectedAvatar}
+                        setToast={handleToast}
                     />
                 ) : selectedPanelSection === 'profile' ? (
                     <PanelProfile isMobile={isMobile}
@@ -264,6 +282,23 @@ export default function Chat() {
                                 <p className="text-xs text-gray-500">Active</p>
                             )}
                         </div>
+                        <div className="absolute right-4 items-center flex gap-3">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                                 stroke="#606060" className="w-6 h-6">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                      d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z"/>
+                            </svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                                 stroke="#606060" className="w-6 h-6">
+                                <path stroke-linecap="round"
+                                      d="M15.75 10.5l4.72-4.72a.75.75 0 011.28.53v11.38a.75.75 0 01-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 002.25-2.25v-9a2.25 2.25 0 00-2.25-2.25h-9A2.25 2.25 0 002.25 7.5v9a2.25 2.25 0 002.25 2.25z"/>
+                            </svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                                 stroke="#606060" className="w-6 h-6">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                      d="M6.75 12a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM12.75 12a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM18.75 12a.75.75 0 11-1.5 0 .75.75 0 011.5 0z"/>
+                            </svg>
+                        </div>
                     </div>
                     // Chatting user info
                 )}
@@ -293,7 +328,7 @@ export default function Chat() {
                                     return (
                                         <div key={message._id} className={messageClassName}>
                                             <div
-                                                className={`text-left inline-block max-w-xl p-2 my-[1.5px] rounded-lg text-sm ${
+                                                className={`text-left inline-block max-w-xs lg:max-w-md p-2 my-[1.5px] rounded-lg text-sm ${
                                                     message.sender === id ? 'bg-[#ED7A46] text-white' : 'bg-gray-100 text-black'
                                                 }`}
                                             >
@@ -316,21 +351,21 @@ export default function Chat() {
                 </div>
 
                 {!!selectedUserId && (
-                    <form className={`bg-white border-t-[1px] border-gray-100 flex gap-2 p-5 ${isMobile? "sticky bottom-0 h-[9%]":""}`} onSubmit={sendMessage}>
+                    <form className={`bg-white border-t-[1px] border-gray-100 flex gap-2 p-5 ${isMobile? "sticky bottom-0 h-[7%]":""}`} onSubmit={sendMessage}>
                         <input type="text"
                                value={newMessageText}
                                onChange={ev => setNewMessageText(ev.target.value)}
                                placeholder="Type Here"
                                className="bg-white flex-grow border p-2 rounded-full"/>
-                        <label className="bg-[#ED7A46] pl-2 pr-2 text-white rounded-full cursor-pointer">
+                        <label className="bg-[#ED7A46] p-2 text-white rounded-full cursor-pointer">
                             <input type="file" className="hidden" accept="image/*" onChange={sendFile} />
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                                 stroke="currentColor" className="w-6 h-6">
+                                 stroke="currentColor" className="w-6 h-6 bg-[#ED7A46]">
                                 <path stroke-linecap="round" stroke-linejoin="round"
                                       d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"/>
                             </svg>
                         </label>
-                        <button type="submit" className="bg-[#ED7A46] pl-2 pr-2 text-white rounded-full">
+                        <button type="submit" className="bg-[#ED7A46] p-2 text-white rounded-full">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
                             </svg>
