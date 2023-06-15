@@ -66,33 +66,60 @@ export default function Chat() {
     }
 
 
-    function sendMessage(ev) {
-        ev.preventDefault();
+    function sendMessage(ev, file = null) {
+        if (ev) ev.preventDefault();
 
-        if (newMessageText.trim() === '') {
-            // If the input is empty or contains only whitespace, do nothing
-            return;
-        }
+        // if (newMessageText.trim() === '' && !file) {
+        //     // If the input is empty or contains only whitespace, do nothing
+        //     return;
+        // }
 
         ws.send(
             JSON.stringify({
                 recipient: selectedUserId,
                 text: newMessageText,
+                file,
                 createdAt: Date.now(),
             })
         );
-        setNewMessageText('');
-        setMessages((prev) => [
-            ...prev,
-            {
-                text: newMessageText,
-                sender: id,
-                recipient: selectedUserId,
-                _id: Date.now(),
-                createdAt: Date.now(),
-            },
-        ]);
+
+        console.log(file);
+        if (file) {
+            setTimeout(() => {
+                axios.get('/api/messages/' + selectedUserId)
+                    .then(res => {
+                        setMessages(res.data);
+                    })
+                    .catch(error => {
+                        console.error('Error retrieving messages:', error);
+                    });
+            }, 5000); // Delay the API call by 3 seconds
+        } else {
+            setNewMessageText('');
+            setMessages((prev) => [
+                ...prev,
+                {
+                    text: newMessageText,
+                    sender: id,
+                    recipient: selectedUserId,
+                    _id: Date.now(),
+                    createdAt: Date.now(),
+                },
+            ]);
+        }
     }
+
+    function sendFile(ev) {
+        const reader = new FileReader();
+        reader.readAsDataURL(ev.target.files[0]);
+        reader.onload = () => {
+            sendMessage(null, {
+                name: ev.target.files[0].name,
+                data: reader.result,
+            });
+        };
+    }
+
 
 
     useEffect(() => {
@@ -110,7 +137,7 @@ export default function Chat() {
     }, [])
 
 
-        useEffect(()=>{
+    useEffect(()=>{
         const div = divUnderMessages.current;
         if (div) {
             div.scrollIntoView({behavior:'smooth',block:'end'});
@@ -118,13 +145,13 @@ export default function Chat() {
     }, [messages]);
 
     useEffect(()=> {
-        axios.get('/api/people').then(rest=>{
-            const offlinePeopleArr = rest.data
+        axios.get('/api/people').then(resp=>{
+            const offlinePeopleArr = resp.data
                 .filter(p => p._id !== id)
                 .filter(p => !Object.keys(onlinePeople).includes(p._id));
             const offlinePeople = {};
             offlinePeopleArr.forEach(p=> {
-               offlinePeople[p._id] = p;
+                offlinePeople[p._id] = p;
             });
             setOfflinePeople(offlinePeople);
         })
@@ -162,8 +189,8 @@ export default function Chat() {
                           isMobile={isMobile}
                           selectedPanelSection={selectedPanelSection}
                           onClick={(selectedPanelSection) =>{
-                        setSelectedPanelSection(selectedPanelSection);}
-                        }
+                              setSelectedPanelSection(selectedPanelSection);}
+                          }
             />
 
             <div className={`bg-white flex flex-col border-r-gray-200 border-r-[1px] ${isMobile? (selectedUserId ? "hidden" : "w-full") : "w-[20%]" } md:flex`}>
@@ -194,7 +221,7 @@ export default function Chat() {
                     <MobilePanel isMobile={isMobile}
                                  selectedPanelSection={selectedPanelSection}
                                  onClick={(selectedPanelSection) => {
-                                    setSelectedPanelSection(selectedPanelSection);}
+                                     setSelectedPanelSection(selectedPanelSection);}
                                  }/>
                 )}
             </div>
@@ -268,13 +295,18 @@ export default function Chat() {
                                                 }`}
                                             >
                                                 <p>{message.text}</p>
+                                                {message.file && (
+                                                    <div>
+                                                        <img src={message.file} alt="" />
+                                                    </div>
+                                                )}
                                                 <p className={`text-[0.65rem] ${timestampClassName}`}>{formattedTime}</p>
                                             </div>
                                         </div>
                                     );
                                 })}
                                 <div ref={divUnderMessages}></div>
-                            {/* message section */}
+                                {/* message section */}
                             </div>
                         </div>
                     )}
@@ -287,6 +319,14 @@ export default function Chat() {
                                onChange={ev => setNewMessageText(ev.target.value)}
                                placeholder="Type Here"
                                className="bg-white flex-grow border p-2 rounded-full"/>
+                        <label className="bg-[#ED7A46] pl-2 pr-2 text-white rounded-full cursor-pointer">
+                            <input type="file" className="hidden" onChange={sendFile} />
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                                 stroke="currentColor" className="w-6 h-6">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                      d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"/>
+                            </svg>
+                        </label>
                         <button type="submit" className="bg-[#ED7A46] pl-2 pr-2 text-white rounded-full">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />

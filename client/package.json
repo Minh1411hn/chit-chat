@@ -18,6 +18,8 @@
     "buffer": "^6.0.3",
     "cloudinary": "^1.37.0",
     "dotenv": "^16.0.3",
+    "emoji-mart": "^5.5.2",
+    "emoji-picker-react": "^4.4.9",
     "gravatar": "^1.8.2",
     "js-cookie": "^3.0.5",
     "jsonwebtoken": "^9.0.0",

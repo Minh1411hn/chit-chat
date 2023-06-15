@@ -16,6 +16,8 @@ const md5 = require('blueimp-md5');
 const { v4: uuidv4 } = require('uuid');
 const nodemailer = require('nodemailer');
 const axios = require('axios');
+const formidable = require('formidable');
+
 
 dotenv.config();
 mongoose.connect(process.env.MONGO_URL)
@@ -132,8 +134,8 @@ app.get('/api/messages/:userId', async (req,res) => {
 })
 
 app.get('/api/people', async (req,res)=>{
-   const users = await User.find({},{'_id':1,username: 1,email:1,avatar:1});
-   res.json(users);
+    const users = await User.find({},{'_id':1,username: 1,email:1,avatar:1});
+    res.json(users);
 });
 
 app.get('/api/profile', (req,res) => {
@@ -266,27 +268,27 @@ app.post('/api/logout', (req,res)=>{
 })
 
 app.post('/api/register', async (req, res) => {
-   const { email, password, username } = req.body;
-   try {
-       const hashedPassword = bcrypt.hashSync(password,bcryptSalt);
-       const createdUser = await User.create({
-           email:email,
-           password:hashedPassword,
-           username:username,
-       });
+    const { email, password, username } = req.body;
+    try {
+        const hashedPassword = bcrypt.hashSync(password,bcryptSalt);
+        const createdUser = await User.create({
+            email:email,
+            password:hashedPassword,
+            username:username,
+        });
 
-       jwt.sign({userId:createdUser._id,email,username}, jwtSecret, {}, (err, token) => {
-           if (err) throw err;
-           res.cookie('token', token, {sameSite:'none', secure:true}).status(201).json({
-               id: createdUser._id,
-               email,
-               username,
-           });
-       });
-   } catch(err) {
-       if (err) throw err;
-       res.status(500).json('error')
-   }
+        jwt.sign({userId:createdUser._id,email,username}, jwtSecret, {}, (err, token) => {
+            if (err) throw err;
+            res.cookie('token', token, {sameSite:'none', secure:true}).status(201).json({
+                id: createdUser._id,
+                email,
+                username,
+            });
+        });
+    } catch(err) {
+        if (err) throw err;
+        res.status(500).json('error')
+    }
 
 });
 
@@ -340,14 +342,35 @@ wss.on('connection', (connection, req) => {
 
     connection.on('message', async (message) => {
         const messageData = JSON.parse(message.toString());
-        const {recipient, text, createdAt} = messageData;
-        if (recipient && text && createdAt) {
+        const {recipient, text, file, createdAt} = messageData;
+        let imageUrl = null;
+
+        if (file) {
+            const fileData = messageData.file.data;
+
+            // Upload the file to Cloudinary
+            await cloudinary.uploader.upload(fileData, {folder: 'files'}, (error, result) => {
+                if (error) {
+                    console.error('Error uploading file to Cloudinary:', error);
+                    // Handle the error and send an appropriate response back to the client
+                } else {
+                    const imageUrl = result.secure_url;
+                    messageData.file = imageUrl;
+                    console.log('File uploaded to Cloudinary:', imageUrl);
+                }
+            });
+        }
+
+
+        if (recipient && createdAt && (text || file)) {
             const messageDoc = await Message.create({
                 sender: connection.userId,
                 recipient,
                 text,
                 createdAt,
+                file: messageData.file ? messageData.file : null,
             });
+            console.log(imageUrl);
             [...wss.clients]
                 .filter(c => c.userId === recipient)
                 .forEach(c => c.send(JSON.stringify({
@@ -355,6 +378,7 @@ wss.on('connection', (connection, req) => {
                     createdAt,
                     sender:connection.userId,
                     recipient,
+                    file: messageData.file ? messageData.file : null,
                     _id:messageDoc._id})));
         }
     });
@@ -362,4 +386,3 @@ wss.on('connection', (connection, req) => {
     //notify user about online users (when someone connects)
     notifyAboutOnlinePeople();
 });
-

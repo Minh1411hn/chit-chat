@@ -119,7 +119,7 @@ const PanelProfile = ({isMobile,username,email,id,selectedUserId, logout,avatar}
             <p className="mx-auto text-center text-lg font-semibold pt-4">{username}</p>
 
             <div className="w-4/5 mx-auto">
-                <div className="flex flex-col mb-4">
+                <div className="flex flex-col mb-10">
                     <label className="mb-1 pl-2 text-sm text-gray-500" htmlFor="email">Email</label>
                     <input
                         id="email"
